@@ -190,19 +190,129 @@ export const AppProvider = ({ children }) => {
   };
 
   const verifyOTP = async (transactionId, inputCode) => {
-    const txn = transactions.find(t => t.id === transactionId);
-    if (!txn) return { success: false, error: 'Transaction not found.' };
-    if (txn.otp_code !== String(inputCode)) return { success: false, error: 'Incorrect code. Please try again.' };
+    // Pull fresh data from DB to check live state (not stale local state)
+    const { data: txn, error: fetchErr } = await supabase
+      .from('transactions')
+      .select('*, item:item_id(title, owner_id)')
+      .eq('id', transactionId)
+      .single();
 
-    const { error } = await supabase.from('transactions').update({ status: 'Delivered' }).eq('id', transactionId);
+    if (fetchErr || !txn) return { success: false, error: 'Transaction not found.' };
+
+    // Lifecycle guard: only Accepted transactions can be verified
+    if (!['Requested', 'Accepted'].includes(txn.status)) {
+      return { success: false, error: `Cannot verify a transaction with status "${txn.status}".` };
+    }
+
+    // Reuse guard
+    if (txn.otp_used) {
+      return { success: false, error: 'This code has already been used and cannot be reused.' };
+    }
+
+    // Max-attempts guard (allow up to 5 tries)
+    if ((txn.otp_attempts || 0) >= 5) {
+      return { success: false, error: 'Maximum verification attempts reached. Contact support.' };
+    }
+
+    const isCorrect = txn.otp_code === String(inputCode).trim();
+    const newAttempts = (txn.otp_attempts || 0) + 1;
+
+    // Always log the attempt
+    await supabase.from('verification_logs').insert([{
+      transaction_id: transactionId,
+      attempted_by: currentUser.id,
+      input_code: String(inputCode).trim(),
+      is_success: isCorrect,
+      otp_attempts_at_time: newAttempts
+    }]);
+
+    if (!isCorrect) {
+      // Increment attempt counter in DB
+      await supabase.from('transactions').update({ otp_attempts: newAttempts }).eq('id', transactionId);
+      const remaining = 5 - newAttempts;
+      return {
+        success: false,
+        error: remaining > 0
+          ? `Incorrect code. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`
+          : 'Incorrect code. Maximum attempts reached. Contact support.'
+      };
+    }
+
+    // ✅ Code is correct — update transaction to Delivered and lock OTP
+    const { error: updateErr } = await supabase.from('transactions').update({
+      status: 'Delivered',
+      otp_used: true,
+      otp_attempts: newAttempts,
+      otp_verified_at: new Date().toISOString()
+    }).eq('id', transactionId);
+
+    if (updateErr) return { success: false, error: updateErr.message };
+
+    // Notify both parties in real time
+    const itemTitle = txn.item?.title || 'the item';
+    const notifPayload = [
+      {
+        user_id: currentUser.id,
+        title: 'Delivery Confirmed ✅',
+        body: `You verified delivery of "${itemTitle}". The transaction is now locked.`
+      }
+    ];
+    if (txn.borrower_id) {
+      notifPayload.push({
+        user_id: txn.borrower_id,
+        title: 'Item Delivered ✅',
+        body: `"${itemTitle}" has been confirmed as delivered to you!`
+      });
+    }
+    await supabase.from('notifications').insert(notifPayload);
+
+    fetchTransactions();
+    return { success: true };
+  };
+
+  // Lender accepts a Requested transaction → moves to Accepted
+  const acceptRequest = async (transactionId) => {
+    const { data: txn } = await supabase
+      .from('transactions')
+      .select('*, item:item_id(title, owner_id)')
+      .eq('id', transactionId)
+      .single();
+
+    if (!txn) return { success: false, error: 'Transaction not found.' };
+    if (txn.status !== 'Requested') return { success: false, error: 'Only Requested transactions can be accepted.' };
+
+    const { error } = await supabase.from('transactions').update({ status: 'Accepted' }).eq('id', transactionId);
     if (error) return { success: false, error: error.message };
 
-    // Notify both parties
-    const itemTitle = txn.item?.title || 'the item';
-    await supabase.from('notifications').insert([
-      { user_id: currentUser.id, title: 'Delivery Confirmed ✅', body: `"${itemTitle}" has been marked as Delivered.` },
-      { user_id: txn.borrower_id, title: 'Item Delivered ✅', body: `"${itemTitle}" has been confirmed as delivered to you!` }
-    ]);
+    const itemTitle = txn.item?.title || 'an item';
+    await supabase.from('notifications').insert([{
+      user_id: txn.borrower_id,
+      title: 'Request Accepted! 🎉',
+      body: `Your request for "${itemTitle}" was accepted. Your code: ${txn.otp_code}`
+    }]);
+
+    fetchTransactions();
+    return { success: true };
+  };
+
+  // Lender rejects a Requested transaction
+  const rejectRequest = async (transactionId) => {
+    const { data: txn } = await supabase
+      .from('transactions')
+      .select('*, item:item_id(title)')
+      .eq('id', transactionId)
+      .single();
+
+    if (!txn || txn.status !== 'Requested') return { success: false, error: 'Cannot reject this transaction.' };
+
+    const { error } = await supabase.from('transactions').update({ status: 'Rejected' }).eq('id', transactionId);
+    if (error) return { success: false, error: error.message };
+
+    await supabase.from('notifications').insert([{
+      user_id: txn.borrower_id,
+      title: 'Request Declined',
+      body: `Your request for "${txn.item?.title || 'an item'}" was declined by the lender.`
+    }]);
 
     fetchTransactions();
     return { success: true };
@@ -298,6 +408,8 @@ export const AppProvider = ({ children }) => {
       updateProfile,
       addReview,
       verifyOTP,
+      acceptRequest,
+      rejectRequest,
       markNotificationRead,
       markAllRead,
       fetchTransactions,
