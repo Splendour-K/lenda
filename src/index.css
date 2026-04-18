@@ -251,6 +251,31 @@ select.form-input { cursor: pointer; }
   box-shadow: var(--shadow-sm);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  z-index: 10;
+}
+
+.item-sponsored-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: white;
+  color: #f59e0b;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  z-index: 11;
+  pointer-events: none;
+}
+
+.item-sponsored-badge + .item-category-badge {
+  top: 38px;
 }
 
 .item-wishlist-btn {

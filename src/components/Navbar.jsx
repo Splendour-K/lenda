@@ -70,6 +70,11 @@ const Navbar = () => {
                   <Link to="/dashboard" className="btn btn-outline" style={{ border: 'none', color: 'var(--muted-foreground)', fontSize: 13, padding: '8px 12px', textDecoration: 'none' }}>
                     <LayoutDashboard size={15} style={{ marginRight: 4 }} /> Dashboard
                   </Link>
+                  {userProfile?.is_admin && (
+                    <Link to="/admin" className="btn btn-outline" style={{ border: 'none', color: '#f59e0b', fontSize: 13, padding: '8px 12px', textDecoration: 'none' }}>
+                      <ShieldCheck size={15} style={{ marginRight: 4 }} /> Admin
+                    </Link>
+                  )}
                   <NotificationBell />
                 </>
               )}

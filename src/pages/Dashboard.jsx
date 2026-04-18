@@ -333,7 +333,7 @@ const OTPVerifier = ({ txn }) => {
    Lender Dashboard
 ───────────────────────────────────────── */
 const LenderDashboard = () => {
-  const { currentUser, transactions, items, formatPrice, acceptRequest, rejectRequest } = useAppContext();
+  const { currentUser, transactions, items, formatPrice, acceptRequest, rejectRequest, requestSponsorship } = useAppContext();
   const navigate = useNavigate();
   const [actioning, setActioning] = useState(null);
   const [selectedCalendarItem, setSelectedCalendarItem] = useState(null);
@@ -519,6 +519,22 @@ const LenderDashboard = () => {
               <div className="dash-txn-meta">
                 <span>{item.category}</span>
                 <span>{formatPrice(item.price, item.currency)}/2d</span>
+              </div>
+              <div className="dash-action-row mt-3" onClick={e => e.stopPropagation()}>
+                {item.is_sponsored ? (
+                  <span className="badge badge-info flex items-center gap-1" style={{ fontSize: 11 }}>
+                    <Star size={10} fill="currentColor" /> Sponsored
+                  </span>
+                ) : (
+                  <button 
+                    className="btn btn-outline" 
+                    style={{ fontSize: 12, padding: '4px 10px', height: 'auto', minHeight: 'auto', color: item.sponsor_requested ? 'var(--muted-foreground)' : '#f59e0b', borderColor: item.sponsor_requested ? 'var(--border)' : '#f59e0b' }}
+                    disabled={item.sponsor_requested}
+                    onClick={() => requestSponsorship(item.id)}
+                  >
+                    <ArrowUpRight size={13} /> {item.sponsor_requested ? 'Sponsorship Pending' : 'Promote listing'}
+                  </button>
+                )}
               </div>
             </div>
           ))}

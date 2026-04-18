@@ -53,6 +53,13 @@ const ItemCard = ({ item }) => {
           <Heart size={20} color="white" />
         </button>
 
+        {item.is_sponsored && (
+          <div className="item-sponsored-badge">
+            <Star size={10} fill="currentColor" />
+            Sponsored
+          </div>
+        )}
+
         <div className="item-category-badge">{item.category}</div>
 
         {/* Prev/Next arrows (only if multiple images) */}

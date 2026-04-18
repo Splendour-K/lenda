@@ -103,9 +103,65 @@ export const AppProvider = ({ children }) => {
     const { data } = await supabase
       .from('items')
       .select('*, owner:owner_id(name, avatar, is_verified, rating, university)')
-      .eq('status', 'Available')
+      .eq('status', 'Available');
+    
+    if (data) {
+      // Sort: Sponsored items first, then by created_at desc
+      const sorted = [...data].sort((a, b) => {
+        if (a.is_sponsored && !b.is_sponsored) return -1;
+        if (!a.is_sponsored && b.is_sponsored) return 1;
+        return new Date(b.created_at) - new Date(a.created_at);
+      });
+      setItems(sorted);
+    }
+  };
+
+  /* ─────────────────────────────────────────
+     Admin & Advanced Functions
+  ───────────────────────────────────────── */
+  
+  const adminFetchAllUsers = async () => {
+    const { data } = await supabase.from('users').select('*').order('created_at', { ascending: false });
+    return data || [];
+  };
+
+  const adminUpdateUser = async (id, updates) => {
+    const { error } = await supabase.from('users').update(updates).eq('id', id);
+    if (error) throw error;
+    fetchUserProfile(currentUser?.id); // Refresh if self
+  };
+
+  const adminDeleteUser = async (id) => {
+    const { error } = await supabase.from('users').delete().eq('id', id);
+    if (error) throw error;
+  };
+
+  const adminFetchAllItems = async () => {
+    const { data } = await supabase
+      .from('items')
+      .select('*, owner:owner_id(name, email, university)')
       .order('created_at', { ascending: false });
-    if (data) setItems(data);
+    return data || [];
+  };
+
+  const adminUpdateItem = async (id, updates) => {
+    const { error } = await supabase.from('items').update(updates).eq('id', id);
+    if (error) throw error;
+    fetchItems();
+  };
+
+  const adminFetchAllTransactions = async () => {
+    const { data } = await supabase
+      .from('transactions')
+      .select('*, item:item_id(title, owner_id), borrower:borrower_id(name)')
+      .order('created_at', { ascending: false });
+    return data || [];
+  };
+
+  const requestSponsorship = async (itemId) => {
+    const { error } = await supabase.from('items').update({ sponsor_requested: true }).eq('id', itemId);
+    if (error) throw error;
+    fetchItems();
   };
 
   async function fetchTransactions() {
@@ -445,7 +501,14 @@ export const AppProvider = ({ children }) => {
       setSearchQuery,
       currency,
       setCurrency,
-      formatPrice
+      formatPrice,
+      adminFetchAllUsers,
+      adminUpdateUser,
+      adminDeleteUser,
+      adminFetchAllItems,
+      adminUpdateItem,
+      adminFetchAllTransactions,
+      requestSponsorship
     }}>
       {children}
     </AppContext.Provider>
