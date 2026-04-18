@@ -1,6 +1,24 @@
 /* ═══════════════════════════════════════════
    Dashboard Layout
 ═══════════════════════════════════════════ */
+@media (max-width: 767px) {
+  .dash-header { flex-direction: column; gap: 14px; margin-bottom: 20px; }
+  .dash-stats-row { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .dash-stat-card { padding: 14px 10px; gap: 8px; }
+  .dash-stat-value { font-size: 18px; }
+  .dash-stat-label { font-size: 11px; }
+  .dash-role-switch { align-self: flex-start; }
+  .dash-txn-main { flex-wrap: wrap; gap: 8px; }
+  .td-info-grid { grid-template-columns: 1fr 1fr; }
+  .td-otp-inputs { gap: 6px; }
+  .td-otp-box { width: 44px !important; height: 52px !important; font-size: 22px; }
+  .td-action-btns { flex-direction: column; }
+  .dash-recommend-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .otp-input-row { gap: 5px; }
+  .otp-digit-box { width: 38px !important; height: 46px !important; font-size: 20px; }
+  .lifecycle-bar { gap: 0; overflow-x: auto; padding-bottom: 4px; }
+  .lifecycle-label { font-size: 9px; }
+}
 .dash-header {
   display: flex;
   align-items: flex-start;
