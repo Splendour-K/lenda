@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import Home from './pages/Home';
 import ItemDetails from './pages/ItemDetails';
 import Profile from './pages/Profile';
@@ -27,6 +28,7 @@ function App() {
             <Route path="/admin" element={<Admin />} />
             <Route path="/list-item" element={<ListAnItem />} />
           </Routes>
+          <Footer />
         </div>
       </Router>
     </AppProvider>
