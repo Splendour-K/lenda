@@ -178,14 +178,14 @@ const OTPVerifier = ({ txn, onSuccess }) => {
 const TransactionDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { currentUser, formatPrice, acceptRequest, rejectRequest, fetchTransactions } = useAppContext();
+  const { currentUser, formatPrice, acceptRequest, rejectRequest } = useAppContext();
 
   const [txn, setTxn] = useState(null);
   const [loading, setLoading] = useState(true);
   const [actioning, setActioning] = useState(null);
 
   const fetchTxn = async () => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('transactions')
       .select(`
         *,
@@ -198,7 +198,11 @@ const TransactionDetail = () => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchTxn(); }, [id]);
+  useEffect(() => { 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchTxn(); 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   if (loading) return <div className="container mt-8 text-center td-loading">Loading transaction…</div>;
   if (!txn) return <div className="container mt-8 text-center">Transaction not found.</div>;

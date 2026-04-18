@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { CURRENCIES, EXCHANGE_RATES } from '../utils/constants';
 
@@ -10,7 +11,6 @@ export const AppProvider = ({ children }) => {
   const [userProfile, setUserProfile] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [currency, setCurrency] = useState('GHS');
   const [searchQuery, setSearchQuery] = useState('');
   // Active dashboard role: 'borrower' or 'lender'
@@ -52,14 +52,15 @@ export const AppProvider = ({ children }) => {
       .subscribe();
 
     return () => supabase.removeChannel(channel);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
-  // Sync activeRole from userProfile when profile loads
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (userProfile?.role) setActiveRole(userProfile.role);
   }, [userProfile]);
 
-  const detectLocation = async () => {
+  async function detectLocation() {
     try {
       const response = await fetch('https://ipapi.co/json/');
       const data = await response.json();
@@ -69,13 +70,13 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const formatPrice = (price, itemCurrency = 'GHS') => {
+  function formatPrice(price, itemCurrency = 'GHS') {
     const priceInBase = price / (EXCHANGE_RATES[itemCurrency] || 1);
     const convertedPrice = priceInBase * (EXCHANGE_RATES[currency] || 1);
     return `${CURRENCIES[currency]?.symbol || ''}${convertedPrice.toFixed(2)}`;
   };
 
-  const fetchUserProfile = async (userId) => {
+  async function fetchUserProfile(userId) {
     const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
     if (data) {
       setUserProfile(data);
@@ -99,7 +100,7 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const fetchItems = async () => {
+  async function fetchItems() {
     const { data } = await supabase
       .from('items')
       .select('*, owner:owner_id(name, avatar, is_verified, rating, university)')
@@ -108,7 +109,7 @@ export const AppProvider = ({ children }) => {
     if (data) setItems(data);
   };
 
-  const fetchTransactions = async () => {
+  async function fetchTransactions() {
     if (!currentUser) return;
     const { data } = await supabase
       .from('transactions')
@@ -118,7 +119,7 @@ export const AppProvider = ({ children }) => {
     if (data) setTransactions(data);
   };
 
-  const fetchNotifications = async () => {
+  async function fetchNotifications() {
     if (!currentUser) return;
     const { data } = await supabase
       .from('notifications')
