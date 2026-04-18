@@ -4,8 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import {
   Package, Clock, Star, ArrowLeftRight, ShieldCheck,
   CheckCircle2, AlertCircle, Truck, Key, LayoutDashboard,
-  XCircle, ChevronRight, Lock, RotateCcw
+import {
+  XCircle, ChevronRight, Lock, RotateCcw, Calendar
 } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import './Dashboard.css';
 
 /* ─────────────────────────────────────────
@@ -334,6 +337,7 @@ const LenderDashboard = () => {
   const { currentUser, transactions, items, formatPrice, acceptRequest, rejectRequest } = useAppContext();
   const navigate = useNavigate();
   const [actioning, setActioning] = useState(null);
+  const [selectedCalendarItem, setSelectedCalendarItem] = useState(null);
 
   const myItems = items.filter(i => i.owner_id === currentUser?.id);
   const incoming = transactions.filter(t => t.item?.owner_id === currentUser?.id);
@@ -519,6 +523,61 @@ const LenderDashboard = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* ── Availability Calendar & Analytics ── */}
+      {myItems.length > 0 && (
+        <div className="card mt-6">
+          <div className="dash-section-header">
+            <h2 className="flex items-center gap-2"><Calendar size={20} /> Item Availability & Analytics</h2>
+          </div>
+          <div className="flex gap-6" style={{ flexWrap: 'wrap' }}>
+            <div style={{ flex: '1 1 300px' }}>
+              <label className="form-label">Select Item</label>
+              <select 
+                className="form-input mb-4" 
+                value={selectedCalendarItem || ''} 
+                onChange={e => setSelectedCalendarItem(e.target.value)}
+              >
+                <option value="">-- Choose an item --</option>
+                {myItems.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}
+              </select>
+              
+              {selectedCalendarItem && (
+                <div className="mb-4">
+                  <div className="text-muted mb-2">Total Earnings for this item:</div>
+                  <div className="dash-stat-value text-primary">
+                    {formatPrice(
+                      incoming
+                        .filter(t => t.item_id === selectedCalendarItem && ['Delivered', 'Returned'].includes(t.status))
+                        .reduce((sum, t) => sum + Number(t.total_price || 0), 0)
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {selectedCalendarItem && (
+              <div style={{ flex: '1 1 300px' }}>
+                <label className="form-label">Booked Dates</label>
+                <div style={{ pointerEvents: 'none' }}>
+                  <DatePicker
+                    inline
+                    highlightDates={
+                      incoming
+                        .filter(t => t.item_id === selectedCalendarItem && ['Requested', 'Accepted', 'Ongoing', 'Delivered'].includes(t.status))
+                        .map(t => ({
+                          start: new Date(t.start_date + 'T00:00:00'),
+                          end: new Date(t.end_date + 'T23:59:59')
+                        }))
+                    }
+                  />
+                </div>
+                <p className="text-muted mt-2" style={{ fontSize: 12 }}>Highlighted dates are currently booked or requested.</p>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

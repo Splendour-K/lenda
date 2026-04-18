@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Star, ShieldCheck } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Star, ShieldCheck, Heart } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 const ItemCard = ({ item }) => {
@@ -48,6 +48,10 @@ const ItemCard = ({ item }) => {
             No image
           </div>
         )}
+
+        <button className="item-wishlist-btn" onClick={(e) => { e.preventDefault(); e.stopPropagation(); /* TODO: wishlist */ }}>
+          <Heart size={20} color="white" />
+        </button>
 
         <div className="item-category-badge">{item.category}</div>
 

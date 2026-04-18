@@ -1,6 +1,18 @@
 /* ═══════════════════════════════════════════
    Dashboard Layout
 ═══════════════════════════════════════════ */
+.dashboard-section {
+  padding: 16px 0;
+}
+
+/* Calendar highlight styling */
+.react-datepicker__day--highlighted-custom-1,
+.react-datepicker__day--highlighted {
+  background-color: var(--primary) !important;
+  color: white !important;
+  border-radius: 50% !important;
+}
+
 @media (max-width: 767px) {
   .dash-header { flex-direction: column; gap: 14px; margin-bottom: 20px; }
   .dash-stats-row { grid-template-columns: repeat(3, 1fr); gap: 10px; }

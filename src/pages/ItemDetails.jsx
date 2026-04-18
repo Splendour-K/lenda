@@ -17,24 +17,54 @@ const ItemDetails = () => {
   const [dateRange, setDateRange] = useState([null, null]);
   const [startDate, endDate] = dateRange;
   const [otpCode, setOtpCode] = useState(null);
+  const [bookedIntervals, setBookedIntervals] = useState([]);
+  const [nextAvailableDate, setNextAvailableDate] = useState(null);
   
   useEffect(() => {
-    const fetchItem = async () => {
-      const { data, error } = await supabase
+    const fetchData = async () => {
+      const { data: itemData } = await supabase
         .from('items')
         .select('*, owner:owner_id(name, avatar, is_verified, rating)')
         .eq('id', id)
         .single();
       
-      if (data) setItem(data);
+      if (itemData) setItem(itemData);
+
+      const { data: datesData } = await supabase.rpc('get_item_availability', { p_item_id: id });
+      if (datesData) {
+        const intervals = datesData.map(d => ({
+          start: new Date(d.start_date + 'T00:00:00'), // Ensure local timezone
+          end: new Date(d.end_date + 'T23:59:59')
+        }));
+        setBookedIntervals(intervals);
+
+        let current = new Date();
+        current.setHours(0,0,0,0);
+        let nextAvail = new Date(current);
+        
+        // Find next available
+        while (intervals.some(inv => nextAvail >= inv.start && nextAvail <= inv.end)) {
+          nextAvail.setDate(nextAvail.getDate() + 1);
+        }
+        
+        if (nextAvail.getTime() !== current.getTime()) {
+          setNextAvailableDate(nextAvail);
+        }
+      }
+
       setLoading(false);
     };
-    fetchItem();
+    fetchData();
   }, [id]);
 
   const handleRequest = async () => {
     if (!currentUser) { navigate('/auth'); return; }
     if (!startDate || !endDate) return alert('Please select rental dates');
+    
+    // Check overlap
+    const isOverlap = bookedIntervals.some(inv => (startDate <= inv.end && endDate >= inv.start));
+    if (isOverlap) return alert('Selected dates overlap with an existing booking.');
+
     const startStr = startDate.toISOString().split('T')[0];
     const endStr = endDate.toISOString().split('T')[0];
     const result = await requestToBorrow(item.id, startStr, endStr, item.price);
@@ -107,11 +137,17 @@ const ItemDetails = () => {
                 endDate={endDate}
                 onChange={(update) => setDateRange(update)}
                 minDate={new Date()}
+                excludeDateIntervals={bookedIntervals}
                 placeholderText="Select rental dates"
                 className="form-input"
                 withPortal
                 dateFormat="MMM d, yyyy"
               />
+              {nextAvailableDate && (
+                <div className="text-muted mt-2" style={{ fontSize: 13 }}>
+                  Next available: <strong className="text-primary">{nextAvailableDate.toLocaleDateString()}</strong>
+                </div>
+              )}
             </div>
 
             <button className="btn btn-primary btn-full mt-4" onClick={handleRequest} style={{ padding: '14px' }}>
