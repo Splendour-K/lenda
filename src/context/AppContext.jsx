@@ -77,8 +77,13 @@ export const AppProvider = ({ children }) => {
 
   async function fetchUserProfile(userId) {
     const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
+    
+    // Hardcoded Admin Override for skalu@lanspeech.com
+    const adminEmail = 'skalu@lanspeech.com';
+    const isHardcodedAdmin = currentUser?.email === adminEmail;
+
     if (data) {
-      setUserProfile(data);
+      setUserProfile({ ...data, is_admin: data.is_admin || isHardcodedAdmin });
     } else if (error && error.code === 'PGRST116') {
       const userRes = await supabase.auth.getUser();
       const user = userRes.data?.user;
@@ -89,11 +94,12 @@ export const AppProvider = ({ children }) => {
           name: defaultName,
           university: null,
           role: 'borrower',
-          avatar: null
+          avatar: null,
+          is_admin: isHardcodedAdmin
         }]);
         if (!insertError) {
           const { data: newData } = await supabase.from('users').select('*').eq('id', userId).single();
-          if (newData) setUserProfile(newData);
+          if (newData) setUserProfile({ ...newData, is_admin: newData.is_admin || isHardcodedAdmin });
         }
       }
     }
