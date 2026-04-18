@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import ItemCard from '../components/ItemCard';
 import { Ruler, ArrowUpDown, ChevronDown } from 'lucide-react';
+import { CATEGORIES } from '../utils/constants';
 import './Home.css';
 
 const Home = () => {
@@ -10,8 +11,10 @@ const Home = () => {
 
   const filteredItems = items.filter(item => {
     if (filter === 'All Items') return true;
-    if (filter === 'Suits') return item.category === 'Suit';
-    if (filter === 'Shoes') return item.category === 'Shoes';
+    const categoryGroup = CATEGORIES.find(c => c.name === filter);
+    if (categoryGroup) {
+      return categoryGroup.subcategories.includes(item.category);
+    }
     return true;
   });
 
@@ -19,9 +22,9 @@ const Home = () => {
     <>
       <section className="hero animate-fade-in">
         <div className="container">
-          <h1 className="hero-title">Rent suits & shoes from students on campus.</h1>
+          <h1 className="hero-title">Rent gear, formal wear & more from students on campus.</h1>
           <p className="hero-subtitle">
-            Look sharp for your next formal event without breaking the bank.
+            Get everything you need for your next event, project, or trip without breaking the bank.
             Fast, simple, and trusted by your university community.
           </p>
         </div>
@@ -29,8 +32,8 @@ const Home = () => {
 
       <main className="container page-container animate-fade-in">
         <div className="filters-section">
-          <div className="filter-group">
-            {['All Items', 'Suits', 'Shoes'].map(tab => (
+          <div className="filter-group" style={{ flexWrap: 'wrap' }}>
+            {['All Items', ...CATEGORIES.map(c => c.name)].map(tab => (
               <div 
                 key={tab} 
                 className={`filter-tab ${filter === tab ? 'active' : ''}`}

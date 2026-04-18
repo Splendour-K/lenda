@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Ruler, User, Star, BadgeCheck, Info } from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
 
 const ItemCard = ({ item }) => {
+  const { formatPrice } = useAppContext();
   return (
     <Link to={`/item/${item.id}`} className="item-card">
       <div className="item-image-wrapper">
@@ -17,7 +19,7 @@ const ItemCard = ({ item }) => {
         <div className="item-header">
           <div className="item-title" title={item.title}>{item.title}</div>
           <div className="item-price">
-            ${item.price}
+            {formatPrice(item.price, item.currency)}
             <span className="item-price-sub">/ 2 days</span>
           </div>
         </div>

@@ -1,21 +1,23 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
+import { CATEGORIES } from '../utils/constants';
+import { supabase } from '../lib/supabase';
 
 const ListAnItem = () => {
-  const { addItem, currentUser } = useAppContext();
+  const { addItem, currentUser, currency } = useAppContext();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '',
-    category: 'Suit',
+    category: CATEGORIES[0].subcategories[0],
     size: '',
     fit_description: '',
     condition: 'New',
     price: '',
     extra_day_price: '',
     deposit: '',
-    images: 'https://storage.googleapis.com/banani-generated-images/generated-images/df09e697-1fcf-4642-b55d-5225a559ebe7.jpg'
   });
+  const [imageFiles, setImageFiles] = useState([]);
   const [loading, setLoading] = useState(false);
 
   if (!currentUser) {
@@ -31,15 +33,49 @@ const ListAnItem = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleFileChange = (e) => {
+    if (e.target.files.length > 5) {
+      alert('You can only upload a maximum of 5 images.');
+      return;
+    }
+    setImageFiles(Array.from(e.target.files));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (imageFiles.length === 0) {
+      alert('Please upload at least one image.');
+      return;
+    }
     setLoading(true);
+
+    const imageUrls = [];
+    for (const file of imageFiles) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${currentUser.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('item-images')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        alert('Error uploading image: ' + uploadError.message);
+        setLoading(false);
+        return;
+      }
+
+      const { data } = supabase.storage.from('item-images').getPublicUrl(filePath);
+      imageUrls.push(data.publicUrl);
+    }
+
     const itemData = {
       ...formData,
       price: Number(formData.price),
       extra_day_price: Number(formData.extra_day_price),
       deposit: Number(formData.deposit),
-      images: [formData.images]
+      images: imageUrls,
+      currency: currency
     };
     
     const success = await addItem(itemData);
@@ -64,8 +100,13 @@ const ListAnItem = () => {
             <div style={{ flex: 1 }}>
               <label className="form-label">Category</label>
               <select name="category" className="form-input" value={formData.category} onChange={handleChange}>
-                <option value="Suit">Suit</option>
-                <option value="Shoes">Shoes</option>
+                {CATEGORIES.map(group => (
+                  <optgroup key={group.name} label={group.name}>
+                    {group.subcategories.map(sub => (
+                      <option key={sub} value={sub}>{sub}</option>
+                    ))}
+                  </optgroup>
+                ))}
               </select>
             </div>
             <div style={{ flex: 1 }}>
@@ -91,18 +132,26 @@ const ListAnItem = () => {
 
           <div className="flex gap-4 mb-4">
             <div style={{ flex: 1 }}>
-              <label className="form-label">Price / 2 Days ($)</label>
+              <label className="form-label">Price / 2 Days ({currency})</label>
               <input type="number" required min="1" name="price" className="form-input" placeholder="25" value={formData.price} onChange={handleChange} />
             </div>
             <div style={{ flex: 1 }}>
-              <label className="form-label">Extra Day Price ($)</label>
+              <label className="form-label">Extra Day Price ({currency})</label>
               <input type="number" required min="1" name="extra_day_price" className="form-input" placeholder="10" value={formData.extra_day_price} onChange={handleChange} />
             </div>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Refundable Deposit ($)</label>
+            <label className="form-label">Refundable Deposit ({currency})</label>
             <input type="number" required min="0" name="deposit" className="form-input" placeholder="50" value={formData.deposit} onChange={handleChange} />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Images (up to 5)</label>
+            <input type="file" multiple accept="image/*" className="form-input" onChange={handleFileChange} />
+            <div className="text-muted mt-2" style={{ fontSize: '0.85rem' }}>
+              {imageFiles.length} file(s) selected
+            </div>
           </div>
 
           <button type="submit" className="btn btn-primary btn-full mt-6" disabled={loading}>

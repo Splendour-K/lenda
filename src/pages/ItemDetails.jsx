@@ -7,7 +7,7 @@ import { Ruler, ShieldCheck, User } from 'lucide-react';
 const ItemDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { currentUser, requestToBorrow } = useAppContext();
+  const { currentUser, requestToBorrow, formatPrice } = useAppContext();
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [dates, setDates] = useState('');
@@ -44,12 +44,19 @@ const ItemDetails = () => {
     <div className="container page-container animate-fade-in">
       <div className="flex gap-6" style={{ flexWrap: 'wrap' }}>
         {/* Left: Images */}
-        <div style={{ flex: '1 1 500px' }}>
+        <div style={{ flex: '1 1 500px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <img 
             src={item.images[0] || 'https://via.placeholder.com/600x800'} 
             alt={item.title}
             style={{ width: '100%', borderRadius: 'var(--radius-lg)', objectFit: 'cover', aspectRatio: '3/4' }}
           />
+          {item.images.length > 1 && (
+            <div style={{ display: 'flex', gap: '10px', overflowX: 'auto' }}>
+              {item.images.slice(1).map((img, idx) => (
+                <img key={idx} src={img} alt={`${item.title} ${idx+2}`} style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: 'var(--radius-md)' }} />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Right: Details */}
@@ -82,10 +89,10 @@ const ItemDetails = () => {
           <div className="card" style={{ border: '2px solid var(--border)' }}>
             <div className="flex justify-between items-center mb-4">
               <div style={{ fontSize: 24, fontWeight: 700 }}>
-                ${item.price} <span className="text-muted" style={{ fontSize: 14, fontWeight: 400 }}>/ 2 days</span>
+                {formatPrice(item.price, item.currency)} <span className="text-muted" style={{ fontSize: 14, fontWeight: 400 }}>/ 2 days</span>
               </div>
               <div className="text-muted" style={{ fontSize: 13 }}>
-                Refundable deposit: ${item.deposit}
+                Refundable deposit: {formatPrice(item.deposit, item.currency)}
               </div>
             </div>
 

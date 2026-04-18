@@ -2,10 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Shirt, Search, Plus } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+import { CURRENCIES } from '../utils/constants';
 import './Navbar.css';
 
 const Navbar = () => {
-  const { currentUser } = useAppContext();
+  const { currentUser, currency, setCurrency } = useAppContext();
 
   return (
     <header className="navbar">
@@ -17,6 +18,16 @@ const Navbar = () => {
           CampusCloset
         </Link>
         <div className="nav-actions">
+          <select 
+            className="form-input" 
+            style={{ width: 'auto', padding: '6px 12px', height: 'auto', borderRadius: '20px', border: '1px solid var(--border)', backgroundColor: 'var(--background)' }}
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
+          >
+            {Object.entries(CURRENCIES).map(([code, { symbol }]) => (
+              <option key={code} value={code}>{code} ({symbol})</option>
+            ))}
+          </select>
           <Link to="/admin" className="btn btn-outline" style={{ border: 'none', color: 'var(--muted-foreground)' }}>
             Admin
           </Link>

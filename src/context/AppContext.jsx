@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { CURRENCIES, EXCHANGE_RATES } from '../utils/constants';
 
 const AppContext = createContext();
 
@@ -9,6 +10,7 @@ export const AppProvider = ({ children }) => {
   const [userProfile, setUserProfile] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currency, setCurrency] = useState('GHS'); // Default to GHS
 
   useEffect(() => {
     // Check active session
@@ -24,8 +26,32 @@ export const AppProvider = ({ children }) => {
     });
 
     fetchItems();
+    detectLocation();
     return () => subscription.unsubscribe();
   }, []);
+
+  const detectLocation = async () => {
+    try {
+      const response = await fetch('https://ipapi.co/json/');
+      const data = await response.json();
+      if (data.country_code === 'NG') {
+        setCurrency('NGN');
+      } else {
+        setCurrency('GHS'); // Default to GHS for Ghana and others
+      }
+    } catch (error) {
+      console.error('Error detecting location:', error);
+      setCurrency('GHS');
+    }
+  };
+
+  const formatPrice = (price, itemCurrency = 'GHS') => {
+    // Convert itemPrice from itemCurrency to base (GHS) then to selected currency
+    const priceInBase = price / (EXCHANGE_RATES[itemCurrency] || 1);
+    const convertedPrice = priceInBase * (EXCHANGE_RATES[currency] || 1);
+    
+    return `${CURRENCIES[currency]?.symbol || ''}${convertedPrice.toFixed(2)}`;
+  };
 
   useEffect(() => {
     if (currentUser) {
@@ -130,7 +156,10 @@ export const AppProvider = ({ children }) => {
       signOut,
       addItem,
       requestToBorrow,
-      updateTransactionStatus
+      updateTransactionStatus,
+      currency,
+      setCurrency,
+      formatPrice
     }}>
       {children}
     </AppContext.Provider>
