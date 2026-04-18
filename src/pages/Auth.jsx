@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { Shirt } from 'lucide-react';
+import { Shirt, Package, ArrowLeftRight } from 'lucide-react';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -9,6 +9,7 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [university, setUniversity] = useState('');
+  const [role, setRole] = useState('borrower');
   const [avatarFile, setAvatarFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAppContext();
@@ -26,9 +27,9 @@ const Auth = () => {
           setLoading(false);
           return;
         }
-        await signUp(email, password, name, university, avatarFile);
+        await signUp(email, password, name, university, role, avatarFile);
       }
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       alert(err.message);
     } finally {
@@ -93,6 +94,28 @@ const Auth = () => {
                       required={!avatarFile}
                     />
                   </label>
+                </div>
+              </div>
+              {/* Role selection */}
+              <div className="form-group">
+                <label className="form-label">I want to…</label>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setRole('borrower')}
+                    style={{ flex: 1, padding: '12px', border: `2px solid ${role === 'borrower' ? 'var(--primary)' : 'var(--border)'}`, borderRadius: 'var(--radius-md)', background: role === 'borrower' ? 'color-mix(in srgb, var(--primary) 10%, var(--card))' : 'var(--card)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}
+                  >
+                    <Package size={20} style={{ color: role === 'borrower' ? 'var(--primary)' : 'var(--muted-foreground)' }} />
+                    <span style={{ fontSize: 13, fontWeight: 600, color: role === 'borrower' ? 'var(--primary)' : 'var(--foreground)' }}>Borrow Items</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRole('lender')}
+                    style={{ flex: 1, padding: '12px', border: `2px solid ${role === 'lender' ? 'var(--primary)' : 'var(--border)'}`, borderRadius: 'var(--radius-md)', background: role === 'lender' ? 'color-mix(in srgb, var(--primary) 10%, var(--card))' : 'var(--card)', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}
+                  >
+                    <ArrowLeftRight size={20} style={{ color: role === 'lender' ? 'var(--primary)' : 'var(--muted-foreground)' }} />
+                    <span style={{ fontSize: 13, fontWeight: 600, color: role === 'lender' ? 'var(--primary)' : 'var(--foreground)' }}>Lend Items</span>
+                  </button>
                 </div>
               </div>
             </>

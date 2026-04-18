@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Shirt, Search, Plus } from 'lucide-react';
+import { Shirt, Search, Plus, LayoutDashboard } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { CURRENCIES } from '../utils/constants';
+import NotificationBell from './NotificationBell';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -49,19 +50,25 @@ const Navbar = () => {
             List an Item
           </Link>
           {currentUser ? (
-            <Link to="/profile">
-              {userProfile?.avatar ? (
-                <img
-                  src={userProfile.avatar}
-                  alt="User Profile"
-                  className="avatar"
-                />
-              ) : (
-                <div className="avatar" style={{ background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
-                  {(userProfile?.name || currentUser.email || 'U')[0].toUpperCase()}
-                </div>
-              )}
-            </Link>
+            <>
+              <Link to="/dashboard" className="btn btn-outline" style={{ border: 'none', color: 'var(--muted-foreground)', display: 'flex', alignItems: 'center', gap: '5px', textDecoration: 'none' }}>
+                <LayoutDashboard size={16} /> Dashboard
+              </Link>
+              <NotificationBell />
+              <Link to="/profile">
+                {userProfile?.avatar ? (
+                  <img
+                    src={userProfile.avatar}
+                    alt="User Profile"
+                    className="avatar"
+                  />
+                ) : (
+                  <div className="avatar" style={{ background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+                    {(userProfile?.name || currentUser.email || 'U')[0].toUpperCase()}
+                  </div>
+                )}
+              </Link>
+            </>
           ) : (
             <Link to="/auth" className="btn btn-secondary">Login</Link>
           )}

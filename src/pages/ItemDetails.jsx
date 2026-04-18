@@ -16,6 +16,7 @@ const ItemDetails = () => {
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState([null, null]);
   const [startDate, endDate] = dateRange;
+  const [otpCode, setOtpCode] = useState(null);
   
   useEffect(() => {
     const fetchItem = async () => {
@@ -32,18 +33,12 @@ const ItemDetails = () => {
   }, [id]);
 
   const handleRequest = async () => {
-    if (!currentUser) {
-      navigate('/auth');
-      return;
-    }
+    if (!currentUser) { navigate('/auth'); return; }
     if (!startDate || !endDate) return alert('Please select rental dates');
-    
-    // Format dates to YYYY-MM-DD
     const startStr = startDate.toISOString().split('T')[0];
     const endStr = endDate.toISOString().split('T')[0];
-    
-    const success = await requestToBorrow(item.id, startStr, endStr, item.price);
-    if (success) navigate('/profile');
+    const result = await requestToBorrow(item.id, startStr, endStr, item.price);
+    if (result?.success) setOtpCode(result.otp);
   };
 
   if (loading) return <div className="container mt-8 text-center">Loading...</div>;
@@ -128,6 +123,18 @@ const ItemDetails = () => {
           </div>
         </div>
       </div>
+      {otpCode && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="card" style={{ maxWidth: 360, width: '90%', textAlign: 'center' }}>
+            <div style={{ fontSize: 40, marginBottom: 8 }}>✅</div>
+            <h2>Request Sent!</h2>
+            <p className="text-muted mt-2" style={{ fontSize: 14 }}>Your handover code is:</p>
+            <div style={{ fontSize: 40, fontWeight: 900, letterSpacing: 8, color: 'var(--primary)', padding: '16px 0' }}>{otpCode}</div>
+            <p className="text-muted" style={{ fontSize: 13 }}>Share this code with the lender when they deliver the item. They'll enter it to confirm delivery.</p>
+            <button className="btn btn-primary btn-full mt-4" onClick={() => navigate('/dashboard')}>Go to Dashboard</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
