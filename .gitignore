@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 
 .env
+
+# Scratch / debug files
+*.txt
+scratch_*.mjs
