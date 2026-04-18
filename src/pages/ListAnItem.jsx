@@ -34,11 +34,12 @@ const ListAnItem = () => {
   };
 
   const handleFileChange = (e) => {
-    if (e.target.files.length > 5) {
+    const newFiles = Array.from(e.target.files);
+    if (imageFiles.length + newFiles.length > 5) {
       alert('You can only upload a maximum of 5 images.');
       return;
     }
-    setImageFiles(Array.from(e.target.files));
+    setImageFiles([...imageFiles, ...newFiles]);
   };
 
   const handleSubmit = async (e) => {
@@ -148,9 +149,23 @@ const ListAnItem = () => {
 
           <div className="form-group">
             <label className="form-label">Images (up to 5)</label>
-            <input type="file" multiple accept="image/*" className="form-input" onChange={handleFileChange} />
-            <div className="text-muted mt-2" style={{ fontSize: '0.85rem' }}>
-              {imageFiles.length} file(s) selected
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '8px' }}>
+              {imageFiles.map((file, idx) => (
+                <div key={idx} style={{ position: 'relative', width: '80px', height: '80px' }}>
+                  <img src={URL.createObjectURL(file)} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--radius-md)' }} />
+                  <button 
+                    type="button"
+                    onClick={() => setImageFiles(imageFiles.filter((_, i) => i !== idx))}
+                    style={{ position: 'absolute', top: '-5px', right: '-5px', background: '#ef4444', color: 'white', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', fontSize: '12px' }}
+                  >✕</button>
+                </div>
+              ))}
+              {imageFiles.length < 5 && (
+                <label style={{ width: '80px', height: '80px', border: '2px dashed var(--border)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--muted-foreground)', fontSize: '24px' }}>
+                  +
+                  <input type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
+                </label>
+              )}
             </div>
           </div>
 

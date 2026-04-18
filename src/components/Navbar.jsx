@@ -1,12 +1,13 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Shirt, Search, Plus } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { CURRENCIES } from '../utils/constants';
 import './Navbar.css';
 
 const Navbar = () => {
-  const { currentUser, currency, setCurrency } = useAppContext();
+  const { currentUser, userProfile, currency, setCurrency, searchQuery, setSearchQuery } = useAppContext();
+  const navigate = useNavigate();
 
   return (
     <header className="navbar">
@@ -31,9 +32,17 @@ const Navbar = () => {
           <Link to="/admin" className="btn btn-outline" style={{ border: 'none', color: 'var(--muted-foreground)' }}>
             Admin
           </Link>
-          <div className="btn btn-outline search-btn">
-            <Search size={16} style={{ marginRight: '8px' }} />
-            Search items
+          <div style={{ position: 'relative', flex: '1', minWidth: '200px', maxWidth: '360px' }}>
+            <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted-foreground)', pointerEvents: 'none' }} />
+            <input
+              type="text"
+              placeholder="Search items or university..."
+              value={searchQuery}
+              onChange={(e) => { setSearchQuery(e.target.value); navigate('/'); }}
+              onKeyDown={(e) => e.key === 'Enter' && navigate('/')}
+              className="form-input"
+              style={{ paddingLeft: '36px', borderRadius: '20px', height: '38px' }}
+            />
           </div>
           <Link to="/list-item" className="btn btn-primary" style={{ textDecoration: 'none' }}>
             <Plus size={16} style={{ marginRight: '6px' }} />
@@ -41,11 +50,17 @@ const Navbar = () => {
           </Link>
           {currentUser ? (
             <Link to="/profile">
-              <img
-                src={currentUser.user_metadata?.avatar || 'https://storage.googleapis.com/banani-avatars/avatar%2Fmale%2F18-25%2FEuropean%2F1'}
-                alt="User Profile"
-                className="avatar"
-              />
+              {userProfile?.avatar ? (
+                <img
+                  src={userProfile.avatar}
+                  alt="User Profile"
+                  className="avatar"
+                />
+              ) : (
+                <div className="avatar" style={{ background: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+                  {(userProfile?.name || currentUser.email || 'U')[0].toUpperCase()}
+                </div>
+              )}
             </Link>
           ) : (
             <Link to="/auth" className="btn btn-secondary">Login</Link>

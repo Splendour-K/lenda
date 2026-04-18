@@ -44,11 +44,13 @@ VALUES ('item-images', 'item-images', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- Create policy to allow public access to item-images
+DROP POLICY IF EXISTS "Public Access" ON storage.objects;
 CREATE POLICY "Public Access" 
 ON storage.objects FOR SELECT 
 USING ( bucket_id = 'item-images' );
 
 -- Create policy to allow authenticated users to upload to item-images
+DROP POLICY IF EXISTS "Authenticated Upload" ON storage.objects;
 CREATE POLICY "Authenticated Upload" 
 ON storage.objects FOR INSERT 
 WITH CHECK ( bucket_id = 'item-images' AND auth.role() = 'authenticated' );

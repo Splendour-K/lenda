@@ -6,16 +6,23 @@ import { CATEGORIES } from '../utils/constants';
 import './Home.css';
 
 const Home = () => {
-  const { items } = useAppContext();
+  const { items, searchQuery } = useAppContext();
   const [filter, setFilter] = useState('All Items');
 
+  const q = searchQuery.toLowerCase().trim();
+
   const filteredItems = items.filter(item => {
-    if (filter === 'All Items') return true;
-    const categoryGroup = CATEGORIES.find(c => c.name === filter);
-    if (categoryGroup) {
-      return categoryGroup.subcategories.includes(item.category);
-    }
-    return true;
+    // Category tab filter
+    const categoryMatch = filter === 'All Items' ||
+      (CATEGORIES.find(c => c.name === filter)?.subcategories.includes(item.category) ?? false);
+
+    // Search query filter: match title, category, or owner university
+    const searchMatch = !q ||
+      item.title?.toLowerCase().includes(q) ||
+      item.category?.toLowerCase().includes(q) ||
+      item.owner?.university?.toLowerCase().includes(q);
+
+    return categoryMatch && searchMatch;
   });
 
   return (
@@ -24,8 +31,9 @@ const Home = () => {
         <div className="container">
           <h1 className="hero-title">Rent gear, formal wear & more from students on campus.</h1>
           <p className="hero-subtitle">
-            Get everything you need for your next event, project, or trip without breaking the bank.
-            Fast, simple, and trusted by your university community.
+            {searchQuery
+              ? `Showing results for "${searchQuery}"`
+              : 'Get everything you need for your next event, project, or trip without breaking the bank. Fast, simple, and trusted by your university community.'}
           </p>
         </div>
       </section>
@@ -64,7 +72,9 @@ const Home = () => {
             ))
           ) : (
             <div className="text-center text-muted" style={{ gridColumn: '1 / -1', padding: '40px' }}>
-              No items available at the moment.
+              {searchQuery
+                ? `No items found for "${searchQuery}". Try a different search.`
+                : 'No items available in this category yet.'}
             </div>
           )}
         </div>

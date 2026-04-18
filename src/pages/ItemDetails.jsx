@@ -3,6 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
 import { Ruler, ShieldCheck, User } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { Carousel } from 'react-responsive-carousel';
+import 'react-responsive-carousel/lib/styles/carousel.min.css';
 
 const ItemDetails = () => {
   const { id } = useParams();
@@ -10,7 +14,8 @@ const ItemDetails = () => {
   const { currentUser, requestToBorrow, formatPrice } = useAppContext();
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [dates, setDates] = useState('');
+  const [dateRange, setDateRange] = useState([null, null]);
+  const [startDate, endDate] = dateRange;
   
   useEffect(() => {
     const fetchItem = async () => {
@@ -31,9 +36,13 @@ const ItemDetails = () => {
       navigate('/auth');
       return;
     }
-    if (!dates) return alert('Please enter rental dates');
-    // Calculate total price: basic 2 day price for now
-    const success = await requestToBorrow(item.id, dates.split(' to ')[0], dates.split(' to ')[1] || dates, item.price);
+    if (!startDate || !endDate) return alert('Please select rental dates');
+    
+    // Format dates to YYYY-MM-DD
+    const startStr = startDate.toISOString().split('T')[0];
+    const endStr = endDate.toISOString().split('T')[0];
+    
+    const success = await requestToBorrow(item.id, startStr, endStr, item.price);
     if (success) navigate('/profile');
   };
 
@@ -44,18 +53,17 @@ const ItemDetails = () => {
     <div className="container page-container animate-fade-in">
       <div className="flex gap-6" style={{ flexWrap: 'wrap' }}>
         {/* Left: Images */}
-        <div style={{ flex: '1 1 500px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <img 
-            src={item.images[0] || 'https://via.placeholder.com/600x800'} 
-            alt={item.title}
-            style={{ width: '100%', borderRadius: 'var(--radius-lg)', objectFit: 'cover', aspectRatio: '3/4' }}
-          />
-          {item.images.length > 1 && (
-            <div style={{ display: 'flex', gap: '10px', overflowX: 'auto' }}>
-              {item.images.slice(1).map((img, idx) => (
-                <img key={idx} src={img} alt={`${item.title} ${idx+2}`} style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: 'var(--radius-md)' }} />
+        <div style={{ flex: '1 1 500px' }}>
+          {item.images && item.images.length > 0 ? (
+            <Carousel showThumbs={true} infiniteLoop useKeyboardArrows autoPlay>
+              {item.images.map((img, idx) => (
+                <div key={idx} style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+                  <img src={img} alt={`${item.title} ${idx+1}`} style={{ objectFit: 'cover', aspectRatio: '3/4' }} />
+                </div>
               ))}
-            </div>
+            </Carousel>
+          ) : (
+            <img src="https://via.placeholder.com/600x800" alt={item.title} style={{ width: '100%', borderRadius: 'var(--radius-lg)', objectFit: 'cover', aspectRatio: '3/4' }} />
           )}
         </div>
 
@@ -98,12 +106,16 @@ const ItemDetails = () => {
 
             <div className="form-group">
               <label className="form-label">Rental Dates</label>
-              <input 
-                type="text" 
-                placeholder="e.g. Oct 15 to Oct 17" 
+              <DatePicker
+                selectsRange={true}
+                startDate={startDate}
+                endDate={endDate}
+                onChange={(update) => setDateRange(update)}
+                minDate={new Date()}
+                placeholderText="Select rental dates"
                 className="form-input"
-                value={dates}
-                onChange={(e) => setDates(e.target.value)}
+                withPortal
+                dateFormat="MMM d, yyyy"
               />
             </div>
 

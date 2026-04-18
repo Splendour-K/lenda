@@ -11,6 +11,7 @@ export const AppProvider = ({ children }) => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currency, setCurrency] = useState('GHS'); // Default to GHS
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     // Check active session
@@ -73,6 +74,7 @@ export const AppProvider = ({ children }) => {
           { 
             id: userId, 
             name: defaultName, 
+            university: null,
             avatar: 'https://storage.googleapis.com/banani-avatars/avatar%2Fmale%2F18-25%2FEuropean%2F1' 
           }
         ]);
@@ -87,7 +89,7 @@ export const AppProvider = ({ children }) => {
   const fetchItems = async () => {
     const { data, error } = await supabase
       .from('items')
-      .select('*, owner:owner_id(name, avatar, is_verified, rating)')
+      .select('*, owner:owner_id(name, avatar, is_verified, rating, university)')
       .eq('status', 'Available')
       .order('created_at', { ascending: false });
     
@@ -98,7 +100,7 @@ export const AppProvider = ({ children }) => {
     if (!currentUser) return;
     const { data, error } = await supabase
       .from('transactions')
-      .select('*, item:item_id(title, category)')
+      .select('*, item:item_id(title, category, owner_id)')
       .or(`borrower_id.eq.${currentUser.id}, item_id.in.(select id from items where owner_id = '${currentUser.id}')`)
       .order('created_at', { ascending: false });
     
@@ -152,7 +154,7 @@ export const AppProvider = ({ children }) => {
     if (error) throw error;
   };
 
-  const signUp = async (email, password, name, avatarFile) => {
+  const signUp = async (email, password, name, university, avatarFile) => {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
     if (data.user) {
@@ -176,7 +178,7 @@ export const AppProvider = ({ children }) => {
 
       // Create user profile
       await supabase.from('users').insert([
-        { id: data.user.id, name, avatar: avatarUrl }
+        { id: data.user.id, name, university, avatar: avatarUrl }
       ]);
       fetchUserProfile(data.user.id);
     }
@@ -222,6 +224,25 @@ export const AppProvider = ({ children }) => {
     return true;
   };
 
+  const addReview = async (transactionId, revieweeId, rating, comment) => {
+    if (!currentUser) return false;
+    const { data, error } = await supabase.from('reviews').insert([
+      {
+        transaction_id: transactionId,
+        reviewer_id: currentUser.id,
+        reviewee_id: revieweeId,
+        rating,
+        comment
+      }
+    ]);
+    if (error) {
+      alert("Error adding review: " + error.message);
+      return false;
+    }
+    // Might want to fetch user profile again or transactions if needed
+    return true;
+  };
+
   const signOut = () => supabase.auth.signOut();
 
   return (
@@ -237,6 +258,9 @@ export const AppProvider = ({ children }) => {
       requestToBorrow,
       updateTransactionStatus,
       updateProfile,
+      addReview,
+      searchQuery,
+      setSearchQuery,
       currency,
       setCurrency,
       formatPrice

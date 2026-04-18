@@ -8,6 +8,7 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [university, setUniversity] = useState('');
   const [avatarFile, setAvatarFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAppContext();
@@ -25,7 +26,7 @@ const Auth = () => {
           setLoading(false);
           return;
         }
-        await signUp(email, password, name, avatarFile);
+        await signUp(email, password, name, university, avatarFile);
       }
       navigate('/');
     } catch (err) {
@@ -62,14 +63,37 @@ const Auth = () => {
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Profile Image</label>
+                <label className="form-label">University</label>
                 <input
-                  type="file"
-                  accept="image/*"
+                  type="text"
                   className="form-input"
-                  onChange={(e) => setAvatarFile(e.target.files[0])}
+                  value={university}
+                  onChange={(e) => setUniversity(e.target.value)}
+                  placeholder="e.g. Ashesi University"
                   required
                 />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Profile Image</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  {avatarFile && (
+                    <img 
+                      src={URL.createObjectURL(avatarFile)} 
+                      alt="Preview" 
+                      style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: '50%' }} 
+                    />
+                  )}
+                  <label className="btn btn-outline" style={{ cursor: 'pointer', flex: 1, textAlign: 'center' }}>
+                    {avatarFile ? 'Change Image' : 'Upload Image'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={(e) => setAvatarFile(e.target.files[0])}
+                      required={!avatarFile}
+                    />
+                  </label>
+                </div>
               </div>
             </>
           )}
