@@ -8,6 +8,7 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [avatarFile, setAvatarFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAppContext();
   const navigate = useNavigate();
@@ -19,7 +20,12 @@ const Auth = () => {
       if (isLogin) {
         await signIn(email, password);
       } else {
-        await signUp(email, password, name);
+        if (!avatarFile) {
+          alert('Please select a profile image.');
+          setLoading(false);
+          return;
+        }
+        await signUp(email, password, name, avatarFile);
       }
       navigate('/');
     } catch (err) {
@@ -44,16 +50,28 @@ const Auth = () => {
 
         <form onSubmit={handleSubmit}>
           {!isLogin && (
-            <div className="form-group">
-              <label className="form-label">Full Name</label>
-              <input
-                type="text"
-                className="form-input"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </div>
+            <>
+              <div className="form-group">
+                <label className="form-label">Full Name</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Profile Image</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="form-input"
+                  onChange={(e) => setAvatarFile(e.target.files[0])}
+                  required
+                />
+              </div>
+            </>
           )}
           <div className="form-group">
             <label className="form-label">Email</label>

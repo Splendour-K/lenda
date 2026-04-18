@@ -152,15 +152,74 @@ export const AppProvider = ({ children }) => {
     if (error) throw error;
   };
 
-  const signUp = async (email, password, name) => {
+  const signUp = async (email, password, name, avatarFile) => {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
     if (data.user) {
+      let avatarUrl = 'https://storage.googleapis.com/banani-avatars/avatar%2Fmale%2F18-25%2FEuropean%2F1';
+      
+      if (avatarFile) {
+        const fileExt = avatarFile.name.split('.').pop();
+        const fileName = `${data.user.id}-${Math.random()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(fileName, avatarFile);
+          
+        if (!uploadError) {
+          const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(fileName);
+          avatarUrl = publicUrlData.publicUrl;
+        } else {
+          console.error("Avatar upload failed during signup:", uploadError);
+        }
+      }
+
       // Create user profile
       await supabase.from('users').insert([
-        { id: data.user.id, name, avatar: 'https://storage.googleapis.com/banani-avatars/avatar%2Fmale%2F18-25%2FEuropean%2F1' }
+        { id: data.user.id, name, avatar: avatarUrl }
       ]);
+      fetchUserProfile(data.user.id);
     }
+  };
+
+  const updateProfile = async (updates, avatarFile) => {
+    if (!currentUser) return false;
+    let newAvatarUrl = userProfile?.avatar;
+
+    if (avatarFile) {
+      const fileExt = avatarFile.name.split('.').pop();
+      const fileName = `${currentUser.id}-${Math.random()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, avatarFile);
+        
+      if (!uploadError) {
+        const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(fileName);
+        newAvatarUrl = publicUrlData.publicUrl;
+      } else {
+        alert("Avatar upload failed: " + uploadError.message);
+        return false;
+      }
+    }
+
+    const finalUpdates = {
+      ...updates,
+      avatar: newAvatarUrl
+    };
+
+    const { error } = await supabase
+      .from('users')
+      .update(finalUpdates)
+      .eq('id', currentUser.id);
+
+    if (error) {
+      alert("Error updating profile: " + error.message);
+      return false;
+    }
+    
+    await fetchUserProfile(currentUser.id);
+    return true;
   };
 
   const signOut = () => supabase.auth.signOut();
@@ -177,6 +236,7 @@ export const AppProvider = ({ children }) => {
       addItem,
       requestToBorrow,
       updateTransactionStatus,
+      updateProfile,
       currency,
       setCurrency,
       formatPrice
