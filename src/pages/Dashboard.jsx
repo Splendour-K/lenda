@@ -373,7 +373,10 @@ const LenderDashboard = () => {
               Borrower: <strong>{txn.borrower?.name || '—'}</strong>
             </div>
           </div>
-          <span className={`badge ${statusColor(txn.status)}`}>{txn.status}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span className={`badge ${statusColor(txn.status)}`}>{txn.status}</span>
+            <button className="dash-view-btn" onClick={() => navigate(`/transaction/${txn.id}`)}>View →</button>
+          </div>
         </div>
 
         <LifecycleBar status={txn.status} />

@@ -9,6 +9,7 @@ import Admin from './pages/Admin';
 import ListAnItem from './pages/ListAnItem';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
+import TransactionDetail from './pages/TransactionDetail';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
             <Route path="/item/:id" element={<ItemDetails />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/transaction/:id" element={<TransactionDetail />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/list-item" element={<ListAnItem />} />
           </Routes>

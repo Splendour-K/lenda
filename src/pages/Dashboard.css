@@ -97,6 +97,20 @@
   margin-top: 8px;
 }
 
+.dash-view-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.dash-view-btn:hover { background: color-mix(in srgb, var(--primary) 8%, transparent); }
+
 /* Action row */
 .dash-action-row {
   display: flex;

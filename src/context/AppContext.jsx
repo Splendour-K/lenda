@@ -168,20 +168,26 @@ export const AppProvider = ({ children }) => {
 
     const ownerId = txData?.item?.owner_id;
     const itemTitle = txData?.item?.title || 'an item';
+    const txnId = txData?.id;
+    const txnLink = `/transaction/${txnId}`;
 
-    // Notify borrower with OTP
+    // Notify borrower with OTP + deep link
     await supabase.from('notifications').insert([{
       user_id: currentUser.id,
       title: 'Request Sent ✅',
-      body: `Your request for "${itemTitle}" was sent. Your handover code is: ${otp}`
+      body: `Your request for "${itemTitle}" was sent. Your handover code is: ${otp}`,
+      transaction_id: txnId,
+      link: txnLink
     }]);
 
-    // Notify lender
+    // Notify lender with deep link to full request detail
     if (ownerId) {
       await supabase.from('notifications').insert([{
         user_id: ownerId,
         title: 'New Rental Request 🔔',
-        body: `Someone requested to borrow "${itemTitle}". Check your dashboard to respond.`
+        body: `Someone requested to borrow "${itemTitle}". Tap to review and respond.`,
+        transaction_id: txnId,
+        link: txnLink
       }]);
     }
 
@@ -250,18 +256,23 @@ export const AppProvider = ({ children }) => {
 
     // Notify both parties in real time
     const itemTitle = txn.item?.title || 'the item';
+    const txnLink = `/transaction/${transactionId}`;
     const notifPayload = [
       {
         user_id: currentUser.id,
         title: 'Delivery Confirmed ✅',
-        body: `You verified delivery of "${itemTitle}". The transaction is now locked.`
+        body: `You verified delivery of "${itemTitle}". The transaction is now locked.`,
+        transaction_id: transactionId,
+        link: txnLink
       }
     ];
     if (txn.borrower_id) {
       notifPayload.push({
         user_id: txn.borrower_id,
         title: 'Item Delivered ✅',
-        body: `"${itemTitle}" has been confirmed as delivered to you!`
+        body: `"${itemTitle}" has been confirmed as delivered to you!`,
+        transaction_id: transactionId,
+        link: txnLink
       });
     }
     await supabase.from('notifications').insert(notifPayload);
@@ -285,10 +296,13 @@ export const AppProvider = ({ children }) => {
     if (error) return { success: false, error: error.message };
 
     const itemTitle = txn.item?.title || 'an item';
+    const txnLink = `/transaction/${transactionId}`;
     await supabase.from('notifications').insert([{
       user_id: txn.borrower_id,
       title: 'Request Accepted! 🎉',
-      body: `Your request for "${itemTitle}" was accepted. Your code: ${txn.otp_code}`
+      body: `Your request for "${itemTitle}" was accepted. Your code: ${txn.otp_code}`,
+      transaction_id: transactionId,
+      link: txnLink
     }]);
 
     fetchTransactions();
@@ -311,11 +325,22 @@ export const AppProvider = ({ children }) => {
     await supabase.from('notifications').insert([{
       user_id: txn.borrower_id,
       title: 'Request Declined',
-      body: `Your request for "${txn.item?.title || 'an item'}" was declined by the lender.`
+      body: `Your request for "${txn.item?.title || 'an item'}" was declined by the lender.`,
+      transaction_id: transactionId,
+      link: `/transaction/${transactionId}`
     }]);
 
     fetchTransactions();
     return { success: true };
+  };
+
+  // Log a notification click for audit trail
+  const logNotificationClick = async (notificationId) => {
+    if (!currentUser) return;
+    await supabase.from('notification_click_logs').insert([{
+      notification_id: notificationId,
+      user_id: currentUser.id
+    }]);
   };
 
   const updateTransactionStatus = async (id, newStatus) => {
@@ -412,6 +437,7 @@ export const AppProvider = ({ children }) => {
       rejectRequest,
       markNotificationRead,
       markAllRead,
+      logNotificationClick,
       fetchTransactions,
       activeRole,
       switchRole,
