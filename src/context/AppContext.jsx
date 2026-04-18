@@ -61,7 +61,27 @@ export const AppProvider = ({ children }) => {
 
   const fetchUserProfile = async (userId) => {
     const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
-    if (data) setUserProfile(data);
+    if (data) {
+      setUserProfile(data);
+    } else if (error && error.code === 'PGRST116') {
+      // Row not found. Let's create the missing profile.
+      const userRes = await supabase.auth.getUser();
+      const user = userRes.data?.user;
+      if (user && user.id === userId) {
+        const defaultName = user.email ? user.email.split('@')[0] : 'User';
+        const { error: insertError } = await supabase.from('users').insert([
+          { 
+            id: userId, 
+            name: defaultName, 
+            avatar: 'https://storage.googleapis.com/banani-avatars/avatar%2Fmale%2F18-25%2FEuropean%2F1' 
+          }
+        ]);
+        if (!insertError) {
+          const { data: newData } = await supabase.from('users').select('*').eq('id', userId).single();
+          if (newData) setUserProfile(newData);
+        }
+      }
+    }
   };
 
   const fetchItems = async () => {
