@@ -13,12 +13,20 @@
   font-weight: 800;
   margin-bottom: 10px;
   letter-spacing: -0.03em;
+  line-height: 1.2;
+  padding: 0 8px;
+  /* No gradient on the whole title — children handle their own color */
+}
+
+.hero-title-dark {
+  color: #0f172a;
+}
+
+.hero-title-accent {
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #4f46e5 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  line-height: 1.2;
-  padding: 0 8px;
 }
 @media (min-width: 480px)  { .hero-title { font-size: 28px; } }
 @media (min-width: 768px)  { .hero-title { font-size: 36px; } }

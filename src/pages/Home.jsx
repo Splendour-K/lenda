@@ -63,7 +63,7 @@ const Home = () => {
       {!searchQuery && (
         <section className="hero animate-fade-in">
           <div className="container">
-            <h1 className="hero-title">Rent gear, formal wear &amp; more from students on campus.</h1>
+            <h1 className="hero-title"><span className="hero-title-dark">Rent gear, formal wear &amp; more from students on </span><span className="hero-title-accent">campus.</span></h1>
             <p className="hero-subtitle">
               Fast, simple, and trusted by your university community.
             </p>
