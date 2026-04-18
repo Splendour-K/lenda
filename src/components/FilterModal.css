@@ -163,13 +163,15 @@
 }
 
 .condition-btn:hover {
-  border-color: var(--foreground);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .condition-btn.active {
-  border-color: var(--foreground);
-  background: var(--foreground);
+  border-color: var(--primary);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
   color: white;
+  box-shadow: 0 2px 8px var(--primary-glow);
 }
 
 .toggle-row {
@@ -213,7 +215,7 @@
 }
 
 input:checked + .toggle-slider {
-  background-color: #222222;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
 }
 
 input:checked + .toggle-slider:before {

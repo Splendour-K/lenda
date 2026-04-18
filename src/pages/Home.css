@@ -13,7 +13,7 @@
   font-weight: 800;
   margin-bottom: 10px;
   letter-spacing: -0.03em;
-  background: linear-gradient(135deg, var(--foreground) 0%, #475569 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #4f46e5 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -69,11 +69,12 @@
   display: flex;
   align-items: center;
 }
-.filter-tab:hover { border-color: var(--primary); }
+.filter-tab:hover { border-color: var(--primary); color: var(--primary); }
 .filter-tab.active {
-  background-color: var(--primary);
-  color: var(--primary-foreground);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
   border-color: var(--primary);
+  box-shadow: 0 2px 8px var(--primary-glow);
 }
 
 /* Sort/filter row */

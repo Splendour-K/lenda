@@ -39,13 +39,14 @@
 }
 
 .footer-column a {
-  color: #222222;
+  color: #374151;
   text-decoration: none;
   transition: color 0.2s ease;
+  font-size: 14px;
 }
 
 .footer-column a:hover {
-  text-decoration: underline;
+  color: var(--primary);
 }
 
 .footer-bottom {

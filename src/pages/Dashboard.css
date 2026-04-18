@@ -93,9 +93,12 @@
   display: flex;
   align-items: center;
   gap: 14px;
+  border-left: 3px solid var(--primary);
+  transition: box-shadow 0.2s;
 }
+.dash-stat-card:hover { box-shadow: var(--shadow-md); }
 .dash-stat-icon { color: var(--primary); flex-shrink: 0; }
-.dash-stat-value { font-size: 22px; font-weight: 800; line-height: 1; }
+.dash-stat-value { font-size: 22px; font-weight: 800; line-height: 1; color: var(--foreground); }
 .dash-stat-label { font-size: 12px; color: var(--muted-foreground); margin-top: 3px; }
 
 /* Transaction Cards */
