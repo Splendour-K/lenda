@@ -115,23 +115,40 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ═══ Forms ══════════════════════════════════ */
 .form-group { margin-bottom: 16px; }
-.form-label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--foreground); }
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--foreground);
+  letter-spacing: 0.01em;
+}
 .form-input {
   width: 100%;
   padding: 12px 14px;
   border-radius: var(--radius-md);
-  border: 1px solid var(--border);
-  background-color: var(--input);
+  border: 1.5px solid #cbd5e1;        /* slate-300 — clearly visible */
+  background-color: #ffffff;
+  color: var(--foreground);
   font-family: inherit;
-  font-size: 16px; /* Prevents iOS zoom */
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  font-size: 16px;                    /* Prevents iOS zoom */
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+  -webkit-appearance: none;
+}
+.form-input::placeholder {
+  color: #94a3b8;                     /* slate-400 — readable but clearly secondary */
 }
 .form-input:focus {
   outline: none;
+  border-color: var(--primary);
+  background-color: #fafbff;
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+.form-input:hover:not(:focus) {
   border-color: #94a3b8;
-  box-shadow: 0 0 0 2px rgba(148,163,184,0.2);
 }
 textarea.form-input { min-height: 100px; resize: vertical; }
+select.form-input { cursor: pointer; }
 
 /* ═══ Card ═══════════════════════════════════ */
 .card {

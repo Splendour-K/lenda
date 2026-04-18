@@ -41,7 +41,7 @@ const Navbar = () => {
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
                 className="form-input"
-                style={{ paddingLeft: 36, borderRadius: 24, height: 40, fontSize: 14, background: 'var(--secondary)', borderColor: 'transparent' }}
+                style={{ paddingLeft: 36, borderRadius: 24, height: 40, fontSize: 14, background: '#ffffff', borderColor: '#cbd5e1' }}
               />
             </div>
           </div>

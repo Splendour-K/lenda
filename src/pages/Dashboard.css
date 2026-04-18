@@ -294,17 +294,17 @@
   font-size: 22px;
   font-weight: 800;
   font-family: monospace;
-  border: 2px solid var(--border);
+  border: 1.5px solid #cbd5e1;
   border-radius: var(--radius-md);
-  background: var(--card);
+  background: white;
   color: var(--foreground);
-  transition: border-color 0.2s, box-shadow 0.2s;
-  padding: 0 !important;
+  transition: all 0.2s;
 }
 .otp-digit-box:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+  background: #fafbff;
+  box-shadow: 0 0 0 3px var(--primary-glow);
 }
 .otp-digit-box.error { border-color: #ef4444; background: color-mix(in srgb, #ef4444 6%, var(--card)); }
 .otp-digit-box.success { border-color: #22c55e; }
