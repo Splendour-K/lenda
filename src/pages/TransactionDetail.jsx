@@ -199,7 +199,6 @@ const TransactionDetail = () => {
   };
 
   useEffect(() => { 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchTxn(); 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);

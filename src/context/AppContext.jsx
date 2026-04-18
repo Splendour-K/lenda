@@ -56,7 +56,6 @@ export const AppProvider = ({ children }) => {
   }, [currentUser]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (userProfile?.role) setActiveRole(userProfile.role);
   }, [userProfile]);
 
