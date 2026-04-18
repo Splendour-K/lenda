@@ -21,6 +21,13 @@ const Auth = () => {
     try {
       if (isLogin) {
         await signIn(email, password);
+        // Quick check for admin status to decide where to navigate
+        const { data: profile } = await supabase.from('users').select('is_admin').eq('email', email).single();
+        if (profile?.is_admin || email === 'skalu@lanspeech.com') {
+          navigate('/admin');
+        } else {
+          navigate('/dashboard');
+        }
       } else {
         if (!avatarFile) {
           alert('Please select a profile image.');

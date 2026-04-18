@@ -76,17 +76,17 @@ export const AppProvider = ({ children }) => {
   };
 
   async function fetchUserProfile(userId) {
+    if (!userId) return;
     const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
     
-    // Hardcoded Admin Override for skalu@lanspeech.com
+    // Get fresh user email for admin check
+    const { data: { user } } = await supabase.auth.getUser();
     const adminEmail = 'skalu@lanspeech.com';
-    const isHardcodedAdmin = currentUser?.email === adminEmail;
+    const isHardcodedAdmin = user?.email === adminEmail;
 
     if (data) {
       setUserProfile({ ...data, is_admin: data.is_admin || isHardcodedAdmin });
     } else if (error && error.code === 'PGRST116') {
-      const userRes = await supabase.auth.getUser();
-      const user = userRes.data?.user;
       if (user && user.id === userId) {
         const defaultName = user.email ? user.email.split('@')[0] : 'User';
         const { error: insertError } = await supabase.from('users').insert([{
@@ -457,11 +457,13 @@ export const AppProvider = ({ children }) => {
     return true;
   };
 
-  const switchRole = async (newRole) => {
+  const switchRole = (newRole) => {
     setActiveRole(newRole);
-    // Persist role preference to profile
-    await supabase.from('users').update({ role: newRole }).eq('id', currentUser.id);
-    await fetchUserProfile(currentUser.id);
+    // Persist role preference to profile asynchronously
+    if (currentUser) {
+      supabase.from('users').update({ role: newRole }).eq('id', currentUser.id)
+        .then(() => fetchUserProfile(currentUser.id));
+    }
   };
 
   const addReview = async (transactionId, revieweeId, rating, comment) => {
