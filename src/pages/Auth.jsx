@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { Shirt, Package, ArrowLeftRight } from 'lucide-react';
@@ -21,13 +21,7 @@ const Auth = () => {
     try {
       if (isLogin) {
         await signIn(email, password);
-        // Quick check for admin status to decide where to navigate
-        const { data: profile } = await supabase.from('users').select('is_admin').eq('email', email).single();
-        if (profile?.is_admin || email === 'skalu@lanspeech.com') {
-          navigate('/admin');
-        } else {
-          navigate('/dashboard');
-        }
+        // Let the AppContext session listener handle navigation
       } else {
         if (!avatarFile) {
           alert('Please select a profile image.');
@@ -36,6 +30,7 @@ const Auth = () => {
         }
         await signUp(email, password, name, university, role, avatarFile);
       }
+      // Standard redirect, AppContext will override if admin
       navigate('/dashboard');
     } catch (err) {
       alert(err.message);

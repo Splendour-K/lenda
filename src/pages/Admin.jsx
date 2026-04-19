@@ -24,10 +24,13 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Security: Redirect non-admins
+  // Security: Redirect non-admins after profile is loaded
   useEffect(() => {
-    if (userProfile && !userProfile.is_admin) {
-      navigate('/');
+    // Wait until userProfile is actually fetched (not null)
+    if (userProfile !== null) {
+      if (!userProfile.is_admin) {
+        navigate('/');
+      }
     }
   }, [userProfile, navigate]);
 

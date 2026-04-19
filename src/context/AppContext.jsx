@@ -77,31 +77,41 @@ export const AppProvider = ({ children }) => {
 
   async function fetchUserProfile(userId) {
     if (!userId) return;
-    const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
     
-    // Get fresh user email for admin check
-    const { data: { user } } = await supabase.auth.getUser();
-    const adminEmail = 'skalu@lanspeech.com';
-    const isHardcodedAdmin = user?.email === adminEmail;
+    try {
+      const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
+      
+      // Get fresh auth user safely
+      const { data: authData } = await supabase.auth.getUser();
+      const user = authData?.user;
+      
+      const adminEmail = 'skalu@lanspeech.com';
+      const isHardcodedAdmin = user?.email === adminEmail;
 
-    if (data) {
-      setUserProfile({ ...data, is_admin: data.is_admin || isHardcodedAdmin });
-    } else if (error && error.code === 'PGRST116') {
-      if (user && user.id === userId) {
-        const defaultName = user.email ? user.email.split('@')[0] : 'User';
-        const { error: insertError } = await supabase.from('users').insert([{
-          id: userId,
-          name: defaultName,
-          university: null,
-          role: 'borrower',
-          avatar: null,
-          is_admin: isHardcodedAdmin
-        }]);
-        if (!insertError) {
-          const { data: newData } = await supabase.from('users').select('*').eq('id', userId).single();
-          if (newData) setUserProfile({ ...newData, is_admin: newData.is_admin || isHardcodedAdmin });
+      if (data) {
+        setUserProfile({ ...data, is_admin: data.is_admin || isHardcodedAdmin });
+      } else if (error && error.code === 'PGRST116') {
+        // Only attempt insert if we have a valid auth user
+        if (user && user.id === userId) {
+          const userEmail = user.email || '';
+          const defaultName = userEmail ? userEmail.split('@')[0] : 'User';
+          const { error: insertError } = await supabase.from('users').insert([{
+            id: userId,
+            name: defaultName,
+            university: null,
+            role: 'borrower',
+            avatar: null,
+            is_admin: isHardcodedAdmin
+          }]);
+          
+          if (!insertError) {
+            const { data: newData } = await supabase.from('users').select('*').eq('id', userId).single();
+            if (newData) setUserProfile({ ...newData, is_admin: newData.is_admin || isHardcodedAdmin });
+          }
         }
       }
+    } catch (err) {
+      console.error('Error fetching user profile:', err);
     }
   };
 
